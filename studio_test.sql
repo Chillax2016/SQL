@@ -94,7 +94,7 @@ where age >= 20 and Sname like "a%"
 ;
 
 ########################################
-查询班级平均入学年龄在20及以上的班级名称和平均年龄
+#查询班级平均入学年龄在20及以上的班级名称和平均年龄
 select classinfo.cname, avg(stuinfo.age) as 平均年龄 from stuinfo
 left join classinfo
 on stuinfo.cid = classinfo.cid
