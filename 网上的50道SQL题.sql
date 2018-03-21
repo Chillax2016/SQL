@@ -174,10 +174,31 @@ where t in (select teacher.t from teacher where tname = '张三')));
 
 -- 11. 查询两门及其以上不及格课程的同学的学号，姓名及其平均成绩 
 -- 
+select student.S,student.Sname,avg(score) from student
+right join sc on sc.s = student.S
+where (sc.score < 60 )
+group by sc.S
+having count(sc.c) >= 2;
+
 -- 12. 检索" 01 "课程分数小于 60，按分数降序排列的学生信息
 -- 
+select * from student
+right join sc on sc.s = student.S
+where (sc.score < 60 ) and sc.C = '01'
+order by score desc;
+
 -- 13. 按平均成绩从高到低显示所有学生的所有课程的成绩以及平均成绩
 -- 
+-- 此处巩固case when then end 的用法，Case函数只返回第一个符合条件的值，剩下的Case部分将会被自动忽略。但是不明白这里为什么要加max?
+select  student.S,student.Sname,
+max(case sc.c when '01'  then score else 0 end) as c01,
+max(case sc.c when '02'  then score else 0 end) as c02,
+max(case sc.c when '03'  then score else 0 end) as c03,
+convert(avg(score) ,decimal(10,2))as 平均成绩 from student
+right join sc on sc.S = student.S
+group by S
+order by 平均成绩 desc;
+
 -- 14. 查询各科成绩最高分、最低分和平均分：
 -- 
 --     以如下形式显示：课程 ID，课程 name，最高分，最低分，平均分，及格率，中等率，优良率，优秀率
