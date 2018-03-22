@@ -205,6 +205,17 @@ order by 平均成绩 desc;
 --     及格为>=60，中等为：70-80，优良为：80-90，优秀为：>=90
 --     要求输出课程号和选修人数，查询结果按人数降序排列，若人数相同，按课程号升序排列
 -- 
+
+select c as 课程ID, cname as 课程name, max(score) as 最高分,min(score) as 最低分,convert(avg(score),decimal(10,2)) as 平均分 ,
+										convert(sum(case when score >= 60 and score < 70 then 1 end)/count(score)*100,decimal(10,2)) +'%' as 及格率 ,
+                                        convert(sum(case when score >= 70 and score < 80 then 1 end)/count(score)*100,decimal(10,2)) +'%' as 中等率 ,
+                                        convert(sum(case when score >= 80 and score < 90 then 1 end)/count(score)*100,decimal(10,2)) +'%' as 优良率 ,
+                                        convert(sum(case when score >= 90 and score < 100 then 1 end)/count(score)*100,decimal(10,2)) +'%' as 优秀率 ,
+                                        count(s) as 选修人数
+                                        from (select sc.*,course.cname from sc left outer join course on course.C = sc.c) as sc_14
+group by c
+order by 选修人数 desc ,s asc;
+
 -- 15. 按各科成绩进行排序，并显示排名， Score 重复时保留名次空缺
 -- 
 -- 15.1 按各科成绩进行排序，并显示排名， Score 重复时合并名次
