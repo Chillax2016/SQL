@@ -220,6 +220,36 @@ order by 选修人数 desc ,s asc;
 -- 
 -- 15.1 按各科成绩进行排序，并显示排名， Score 重复时合并名次
 -- 
+
+
+select 
+CASE 
+    WHEN @c != c THEN @rownum:= 1 
+    ELSE @rownum:= @rownum + 1  
+    END AS 普通次序,
+CASE 
+    WHEN @c != c THEN @rank:= 1
+    WHEN @score = score THEN @rank
+    ELSE @rank:= @rownum
+    END AS 保留名次空缺,
+CASE 
+    WHEN @c != c THEN @dense_rank := 1
+    WHEN @score = score THEN @dense_rank 
+    ELSE @dense_rank := @dense_rank+1
+    END AS 重复时合并名次,
+s,
+@c  := c  AS c,
+@score := score as score
+from 
+(SELECT @rownum:=0) r1,
+(SELECT @rank:=0) r2,
+(SELECT @dense_rank:=0) r3,
+(SELECT @C :='')c,
+(SELECT @score :=0)s,
+sc
+order by 
+c,score desc, s asc;
+
 -- 16.  查询学生的总成绩，并进行排名，总分重复时保留名次空缺
 -- 
 -- 16.1 查询学生的总成绩，并进行排名，总分重复时不保留名次空缺
