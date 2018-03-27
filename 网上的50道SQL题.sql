@@ -254,22 +254,108 @@ c,score desc, s asc;
 -- 
 -- 16.1 查询学生的总成绩，并进行排名，总分重复时不保留名次空缺
 -- 
+show variables like 'sql_safe%';
+set sql_safe_updates=off;
+UPDATE sc 
+SET score = 90 
+WHERE sc.s = '02' and c ='02' ; 
+select 
+case
+when @s !=s then @rownum :=@rownum + 1
+-- else @rownum
+end as 行数,
+case
+when @sumscore =sumscore then @rank 
+else @rank:= @rownum
+end as 总分重复时保留名次空缺,
+case
+when @sumscore = sumscore then @dense_rank
+else @dense_rank:=@dense_rank + 1
+end as 总分重复时不保留名次空缺,
+@s :=s as s,
+@sumscore := sumscore as sumscore
+from 
+(select @rownum:=0) r1,
+(select @rank:=0) r2,
+(select @dense_rank:=0) r3,
+(select @s:='')s,
+(select @sumscore:=0)ss,
+(select s,sum(score) as sumscore 
+from sc 
+group by s
+order by sumscore desc) as temp16;
+
 -- 17. 统计各科成绩各分数段人数：课程编号，课程名称，[100-85]，[85-70]，[70-60]，[60-0] 及所占百分比
 -- 
+select c,cname,
+sum(case when score>85 and score <=100 then 1 end) as up100down85,
+convert(sum(case when score>85 and score <=100 then 1 end)/count(score) *100,decimal(10,2)) +'%' as p100,
+sum(case when score>70 and score <= 85 then 1 end) as up85down70,
+convert(sum(case when score>70 and score <= 85 then 1 end)/count(score) *100,decimal(10,2)) +'%' as p85,
+sum(case when score>60 and score <= 70 then 1 end) as up70down60,
+convert(sum(case when score>60 and score <= 70 then 1 end)/count(score) *100,decimal(10,2)) +'%' as p70,
+sum(case when score <=60 then 1 end) as up60down0,
+convert(sum(case when score <=60 then 1 end)/count(score) *100,decimal(10,2)) +'%' as p60
+from (select sc.c,sc.score,course.cname from sc right outer join course on sc.c = course.c) as temp17
+group by cname
+order by c;
+
 -- 18. 查询各科成绩前三名的记录
 -- 
+
+select * from (select 
+CASE 
+    WHEN @c != c THEN @dense_rank := 1
+    WHEN @score = score THEN @dense_rank 
+    ELSE @dense_rank := @dense_rank+1
+    END AS dense_rank,
+s,
+@c  := c  AS c,
+@score := score as score
+from 
+(SELECT @dense_rank:=0) r3,
+(SELECT @C :='')c,
+(SELECT @score :=0)s,
+(select student.S,student.Sname,sc.c,sc.score from sc right outer join student on sc.s = student.s where c is not null)as temp18
+order by 
+c,score desc, s asc) as temp18b
+where dense_rank <=3;
+
 -- 19. 查询每门课程被选修的学生数 
 -- 
+select c,count(temp20.s)as 课程学生数 from
+(select student.S,student.Sname,sc.c from sc right outer join student on sc.s = student.s)as temp19
+group by c
+;
+
 -- 20. 查询出只选修两门课程的学生学号和姓名 
 -- 
+select s,sname,count(temp20.c)as 课程数 from
+(select student.S,student.Sname,sc.c from sc right outer join student on sc.s = student.s)as temp20
+group by s
+having 课程数=2
+;
+
 -- 21. 查询男生、女生人数
 -- 
+select sum(case when ssex = '男' then 1 end) as 男生人数
+,sum(case when ssex = '女' then 1 end) as 女生人数
+ from student;
+ 
 -- 22. 查询名字中含有「风」字的学生信息
 -- 
+select * from student
+where Sname like '%风%';
+
 -- 23. 查询同名同性学生名单，并统计同名人数
 -- 
+-- 这道题听起来怪怪的理解不了
+
 -- 24. 查询 1990 年出生的学生名单
 -- 
+select * from student
+where sage like '1990%'
+
 -- 25. 查询每门课程的平均成绩，结果按平均成绩降序排列，平均成绩相同时，按课程编号升序排列
 -- 
 -- 26. 查询平均成绩大于等于 85 的所有学生的学号、姓名和平均成绩 
