@@ -358,28 +358,111 @@ where sage like '1990%'
 
 -- 25. 查询每门课程的平均成绩，结果按平均成绩降序排列，平均成绩相同时，按课程编号升序排列
 -- 
+select * ,convert(avg(score),decimal(10,2)) as 平均成绩 from sc
+group by C
+order by 平均成绩 desc, s asc;
+
 -- 26. 查询平均成绩大于等于 85 的所有学生的学号、姓名和平均成绩 
 -- 
+select sc.s,student.Sname,avg(score) as 平均成绩 from sc
+right join student on student.s = sc.S
+group by s having 平均成绩 >=85;
+
 -- 27. 查询课程名称为「数学」，且分数低于 60 的学生姓名和分数 
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+where score < 60 and cname = '数学';
+
 -- 28. 查询所有学生的课程及分数情况（存在学生没成绩，没选课的情况）
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+;
+
 -- 29. 查询任何一门课程成绩在 70 分以上的姓名、课程名称和分数
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+where score > 70 ;
+
 -- 30. 查询不及格的课程
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+where score < 60 ;
+
 -- 31. 查询课程编号为 01 且课程成绩在 80 分以上的学生的学号和姓名
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+where student.S='01' and score > 80 ;
+
 -- 32. 求每门课程的学生人数 
 -- 
+select c,count(temp19.s)as 课程学生数 from
+(select student.S,student.Sname,sc.c from sc right outer join student on sc.s = student.s)as temp19
+group by c
+;
+
 -- 33. 成绩不重复，查询选修「张三」老师所授课程的学生中，成绩最高的学生信息及其成绩
 -- 
+select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+right join teacher on teacher.t = course.t
+where teacher.Tname='张三'
+limit 1 ;
+
 -- 34. 成绩有重复的情况下，查询选修「张三」老师所授课程的学生中，成绩最高的学生信息及其成绩
 -- 
+select * from
+(select s,sname,C,Cname ,
+case 
+when @score != score then @rank :=@rank+1
+else @rank
+end as rank ,
+@score := score as score
+from
+(select @score:=0) s,
+(select @rank :=0)r,
+(select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+right join teacher on teacher.t = course.t
+where teacher.Tname='张三') as temp34
+order by 
+c,score desc, s asc) as temp34b
+where rank =1
+;
+
 -- 35. 查询不同课程成绩相同的学生的学生编号、课程编号、学生成绩 
 -- 
 -- 36. 查询每门功成绩最好的前两名
 -- 
+select * from (select 
+CASE 
+    WHEN @c != c THEN @dense_rank := 1
+    -- WHEN @score != score THEN @dense_rank 
+    ELSE @dense_rank := @dense_rank+1
+    END AS dense_rank,
+s,Sname,
+@c  := c  AS c,
+@score := score as score
+from 
+(SELECT @dense_rank:=0) r3,
+(SELECT @C :='')c,
+(SELECT @score :=0)s,
+(select student.S,student.Sname,sc.c,sc.score from sc right outer join student on sc.s = student.s where c is not null)as temp36
+order by 
+c,score desc, s asc) as temp36b
+where dense_rank <3;
+
 -- 37. 统计每门课程的学生选修人数（超过 5 人的课程才统计）。
 -- 
 -- 38. 检索至少选修两门课程的学生学号 
