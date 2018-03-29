@@ -465,12 +465,32 @@ where dense_rank <3;
 
 -- 37. 统计每门课程的学生选修人数（超过 5 人的课程才统计）。
 -- 
+select c,count(temp19.s)as 课程学生数 from
+(select student.S,student.Sname,sc.c from sc right outer join student on sc.s = student.s)as temp19
+group by c
+having 课程学生数 >5
+;
+
 -- 38. 检索至少选修两门课程的学生学号 
 -- 
+select s from
+(select student.S,student.Sname,sc.c from sc right outer join student on sc.s = student.s)as temp19
+group by s
+having count(temp19.s) >1
+;
+
 -- 39. 查询选修了全部课程的学生信息
 -- 
+select s,Sname,sage,ssex from
+(select student.S,student.Sname,student.sage,student.ssex,sc.c from sc right outer join student on sc.s = student.s)as temp19
+group by s
+having count(temp19.s) = 3 
+;
+
 -- 40. 查询各学生的年龄，只按年份来算 
 -- 
+select student.*,2018-year(student.Sage) as 年龄 from student;
+
 -- 41. 按照出生日期来算，当前月日 < 出生年月的月日则，年龄减一
 -- 
 -- 42. 查询本周过生日的学生
