@@ -443,6 +443,28 @@ where rank =1
 
 -- 35. 查询不同课程成绩相同的学生的学生编号、课程编号、学生成绩 
 -- 
+select 
+CASE 
+    WHEN @score != score THEN @rownum := @rownum+1
+    else @rownum:= @rownum+1
+    END AS rownum,
+s,sname,C,Cname ,
+CASE 
+    WHEN @score != score THEN @rank := @rank+1
+    ELSE @rank 
+    END AS rank,
+@score := score as score
+from 
+(SELECT @rank:=0) r1,
+(SELECT @rownum:=0) r2,
+(SELECT @score :=0)s,
+(select sc.s,student.sname,sc.C,course.Cname,score from sc 
+right join course on course.c = sc.c
+right join student on student.S = sc.S
+where score is not null
+order by score desc) as temp35
+;
+
 -- 36. 查询每门功成绩最好的前两名
 -- 
 select * from (select 
